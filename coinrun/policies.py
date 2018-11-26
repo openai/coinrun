@@ -11,8 +11,6 @@ def impala_cnn(images):
     norm_mode = Config.NORM_MODE
 
     nin = images.get_shape()[0]
-    seeds = tf.reshape(images, [nin, 16, -1])
-    seeds = tf.reduce_mean(seeds, axis=-1) * 100
 
     layer_num = [0]
 
