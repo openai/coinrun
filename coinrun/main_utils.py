@@ -63,16 +63,11 @@ def get_savable_params(loaded_params, scope, keep_heads=False):
         print('param mismatch', len(loaded_params), len(params))
         assert(False)
 
-    if Config.ENC_TYPE == 'ppo' or Config.RESTORE_FULL:
-        keep_heads = True
-
     for p, loaded_p in zip(params, loaded_params):
         keep = True
 
         if any((scope + '/' + x) in p.name for x in ['v','pi']):
             keep = keep_heads
-        elif any((scope + '/' + x) in p.name for x in ['aux_head','tdc_latent']):
-            keep = False
 
         if keep:
             filtered_params.append(p)
