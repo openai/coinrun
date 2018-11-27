@@ -46,7 +46,7 @@ After each parameter update, this will save a copy of the agent to `./saved_mode
 Run parallel training using MPI:
 
 ```
-mpirun -np 8 python -m coinrun.train_agent --run-id myrun
+mpiexec -np 8 python -m coinrun.train_agent --run-id myrun
 ```
 
 View training options:
