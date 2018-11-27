@@ -114,12 +114,8 @@ class ConfigSingle(object):
         for ak in self.array_keys:
             self.args_dict[ak[0]] = ak[1]
         
-        if isinstance(args, dict):
-            update_dict = args
-        elif isinstance(args, argparse.Namespace):
-            update_dict = vars(args)
-        else:
-            raise Exception('unrecognized type for args')
+        assert isinstance(args, argparse.Namespace), 'expected argparse.Namespace object'
+        update_dict = vars(args)
         self.parse_args_dict(update_dict)
 
     def parse_args_dict(self, update_dict):
@@ -195,7 +191,7 @@ class ConfigSingle(object):
 
         return _args_dict
         
-    def initialize_args(self, cmd_line_args=None, **kwargs):
+    def initialize_args(self, use_cmd_line_args=True, **kwargs):
         default_args = {}
 
         for tk in self.type_keys:
@@ -216,7 +212,10 @@ class ConfigSingle(object):
             bk_kwargs = {bk[1]: default_args[bk[1]]}
             parser.set_defaults(**bk_kwargs)
 
-        args = parser.parse_args(args=cmd_line_args)
+        if use_cmd_line_args:
+            args = parser.parse_args()
+        else:
+            args = parser.parse_args(args=[])
 
         self.parse_all_args(args)
 
