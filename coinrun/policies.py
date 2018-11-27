@@ -8,7 +8,8 @@ from coinrun.config import Config
 
 def impala_cnn(images):
     """
-    Model used in the paper https://arxiv.org/abs/1802.01561
+    Model used in the paper "IMPALA: Scalable Distributed Deep-RL with 
+    Importance Weighted Actor-Learner Architectures" https://arxiv.org/abs/1802.01561
     """
     depths = Config.LAYER_DEPTHS
     norm_mode = Config.NORM_MODE
@@ -52,7 +53,8 @@ def impala_cnn(images):
 
 def nature_cnn(scaled_images, **conv_kwargs):
     """
-    Model used in the paper https://www.nature.com/articles/nature14236
+    Model used in the paper "Human-level control through deep reinforcement learning" 
+    https://www.nature.com/articles/nature14236
     """
 
     def activ(curr):
