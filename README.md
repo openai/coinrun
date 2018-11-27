@@ -4,7 +4,7 @@
 
 #### [[Blog Post]](https://blog.openai.com/?????) [[Paper]](https://arxiv.org/abs/???????)
 
-This is code for the environments and training used in the paper [Quantifying Generalization in Reinforcement Learning](https://arxiv.org/abs/???????).
+This is code for the environments used in the paper [Quantifying Generalization in Reinforcement Learning](https://arxiv.org/abs/???????) along with an example training script.
 
 Authors: Karl Cobbe, ???.
 
