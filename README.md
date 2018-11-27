@@ -12,6 +12,8 @@ Authors: Karl Cobbe, ???.
 
 You should install the package in development mode so you can easily change the files.  You may also want to create a virtualenv before installing since it depends on a specific version of OpenAI baselines.
 
+This environment has been used on Mac OS X and Ubuntu 16.04 and Python 3.6.
+
 ```
 # Linux
 apt-get install qtbase5-dev mpich
@@ -34,6 +36,8 @@ Try the environment out with the keyboard:
 ```
 python -m coinrun.interactive
 ```
+
+If this fails, you may be missing a dependency or may need to fix `coinrun/Makefile` for your machine.
 
 Train an agent using PPO:
 
