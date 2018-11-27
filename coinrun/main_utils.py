@@ -7,7 +7,7 @@ from mpi4py import MPI
 
 from baselines.common.vec_env.vec_frame_stack import VecFrameStack
 from coinrun.config import Config
-from coinrun import setup_utils
+from coinrun import setup_utils, wrappers
 
 import platform
 
@@ -29,7 +29,7 @@ def make_general_env(num_env, seed=0, use_sub_proc=True):
     ra_prob = Config.RANDOM_ACTION_PROB
 
     if ra_prob > 0:
-        env = coinrunenv.RandomActionEnv(env, ra_prob)
+        env = wrappers.RandomActionWrapper(env, ra_prob)
 
     return env
 
@@ -41,18 +41,20 @@ def load_all_params(sess):
 
 def load_params_for_scope(sess, scope, load_key='default'):
     load_data = Config.get_load_data(load_key)
+    if load_data is None:
+        return False
 
-    if load_data is not None:
-        params_dict = load_data['params']
+    params_dict = load_data['params']
 
-        if scope in params_dict:
-            print('Loading saved file for scope', scope)
+    if scope in params_dict:
+        print('Loading saved file for scope', scope)
 
-            loaded_params = params_dict[scope]
+        loaded_params = params_dict[scope]
 
-            loaded_params, params = get_savable_params(loaded_params, scope, keep_heads=True)
+        loaded_params, params = get_savable_params(loaded_params, scope, keep_heads=True)
 
-            restore_params(sess, loaded_params, params)
+        restore_params(sess, loaded_params, params)
+    return True
 
 def get_savable_params(loaded_params, scope, keep_heads=False):
     params = tf.trainable_variables(scope)

@@ -1,3 +1,9 @@
+"""
+Python interface to the CoinRun shared library using ctypes.
+
+On import, this will attempt to build the shared library.
+"""
+
 import os
 import atexit
 import random
@@ -9,10 +15,13 @@ import numpy as np
 import numpy.ctypeslib as npct
 from baselines.common.vec_env import VecEnv
 from baselines import logger
-from envs import assets
 
 from coinrun.config import Config
-from coinrun import setup_utils
+
+# if the environment is crashing, try using the debug build to get
+# a readable stack trace
+DEBUG = False
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
 game_versions = {
     'CoinRun-v0':   1000,
@@ -23,7 +32,7 @@ game_versions = {
 
 def build():
     from mpi4py import MPI
-    from rl_common import mpi_util
+    from baselines.common import mpi_util
     lrank, _lsize = mpi_util.get_local_rank_size(MPI.COMM_WORLD)
     if lrank == 0:
         dirname = os.path.dirname(__file__)
@@ -40,8 +49,12 @@ def build():
 
 build()
 
-#lib = npct.load_library('.build-debug/coinrun_cpp_d', os.path.dirname(__file__))
-lib = npct.load_library('.build-release/coinrun_cpp', os.path.dirname(__file__))
+if DEBUG:
+    lib_path = '.build-debug/coinrun_cpp_d'
+else:
+    lib_path = '.build-release/coinrun_cpp'
+
+lib = npct.load_library(lib_path, os.path.dirname(__file__))
 lib.init.argtypes = [c_int]
 lib.get_NUM_ACTIONS.restype = c_int
 lib.get_RES_W.restype = c_int
@@ -75,9 +88,14 @@ lib.vec_wait.argtypes = [
 already_inited = False
 
 def init_args_and_threads(cpu_count=4,
-                          monitor_csv_policy='first_env',
+                          monitor_csv_policy='off',
                           rand_seed=None):
-    os.environ['COINRUN_RESOURCES_PATH'] = assets.find('gs://agi-data/assets/coinrun2/v4')
+    """
+    Perform one-time global init for the CoinRun library.  This must be called
+    before creating an instance of CoinRunVecEnv.  You should not
+    call this multiple times from the same process.
+    """
+    os.environ['COINRUN_RESOURCES_PATH'] = os.path.join(SCRIPT_DIR, 'assets')
     is_high_difficulty = Config.HIGH_DIFFICULTY
 
     if rand_seed is None:
@@ -110,9 +128,17 @@ def shutdown():
     lib.shutdown()
 
 class CoinRunVecEnv(VecEnv):
-    def __init__(self, game_type, num_envs, lump_n=0, default_zoom=4.0, want_hires_render=False):
+    """
+    This is the CoinRun VecEnv, all CoinRun environments are just instances
+    of this class with different values for `game_type`
+
+    `game_type`: int game type corresponding to the game type to create, see `enum GameType` in `coinrun.cpp`
+    `num_envs`: number of environments to create in this VecEnv
+    `lump_n`: only used when the environment creates `monitor.csv` files
+    `default_zoom`: controls how much of the level the agent can see
+    """
+    def __init__(self, game_type, num_envs, lump_n=0, default_zoom=4.0):
         default_zoom = 5.0
-        want_hires_render = Config.FULL_RENDER
 
         self.NUM_ACTIONS = lib.get_NUM_ACTIONS()
         self.RES_W       = lib.get_RES_W()
@@ -122,11 +148,11 @@ class CoinRunVecEnv(VecEnv):
         self.buf_rew = np.zeros([num_envs], dtype=np.float32)
         self.buf_done = np.zeros([num_envs], dtype=np.bool)
         self.buf_rgb   = np.zeros([num_envs, self.RES_H, self.RES_W, 3], dtype=np.uint8)
-        if want_hires_render:
+        self.hires_render = Config.FULL_RENDER
+        if self.hires_render:
             self.buf_render_rgb = np.zeros([num_envs, self.VIDEORES, self.VIDEORES, 3], dtype=np.uint8)
         else:
             self.buf_render_rgb = np.zeros([1, 1, 1, 1], dtype=np.uint8)
-        self.hires_render = want_hires_render
 
         num_channels = 1 if Config.USE_BLACK_WHITE else 3
         obs_space = gym.spaces.Box(0, 255, shape=[self.RES_H, self.RES_W, num_channels], dtype=np.uint8)
@@ -140,7 +166,7 @@ class CoinRunVecEnv(VecEnv):
             game_versions[game_type],
             self.num_envs,
             lump_n,
-            want_hires_render,
+            self.hires_render,
             default_zoom)
         self.dummy_info = [{} for _ in range(num_envs)]
 
@@ -187,50 +213,6 @@ class CoinRunVecEnv(VecEnv):
         
         return obs_frames, self.buf_rew, self.buf_done, self.dummy_info
 
-class RandomActionEnv(gym.Wrapper):
-    def __init__(self, env, prob=0.05):
-        gym.Wrapper.__init__(self, env)
-        self.prob = prob
-        self.num_envs = env.num_envs
-
-    def reset(self):
-        return self.env.reset()
-
-    def step(self, action):
-        if np.random.uniform()<self.prob:
-            action = np.random.randint(self.env.action_space.n, size=self.num_envs)
-        
-        return self.env.step(action)
-
 def make(env_id, num_envs, **kwargs):
     assert env_id in game_versions, 'cannot find environment "%s", maybe you mean one of %s' % (env_id, list(game_versions.keys()))
     return CoinRunVecEnv(env_id, num_envs, **kwargs)
-
-def test():
-    # init_args_and_threads(cpu_count=1)
-    setup_utils.setup_and_load(game_name='coinrun')
-    mode = 0
-
-    if mode == 0:
-        print("""Control with arrow keys,
-F1, F2 -- switch resolution,
-F5, F6, F7, F8 -- zoom,
-F9  -- switch reconstruction target picture,
-F10 -- switch lasers
-        """)
-        lib.test_main_loop()
-
-    elif mode == 1:
-        for j in range(10000):
-            if j % 100 == 0:
-                print('testing', j)
-            nenvs = 16
-            env = make('CoinRun-v0', nenvs)
-            for _ in range(2):
-                a = np.random.randint(env.action_space.n, size=(nenvs,), dtype=np.int32)
-                env.step_async(a)
-                _obs, _rew, _done, _info = env.step_wait()
-            env.close()
-
-if __name__ == "__main__":
-    test()

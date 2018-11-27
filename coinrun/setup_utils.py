@@ -1,23 +1,16 @@
 from coinrun.config import Config
 
-from mpi4py import MPI
 import os
 import joblib
 
 def load_for_setup_if_necessary():
-    load_file = Config.get_load_filename()
-
     restore_file(Config.RESTORE_ID)
-
-def get_load_data(restore_id=None):
-    load_file = Config.get_load_filename(restore_id=restore_id)
-
-    filepath = file_to_path(load_file)
-    return joblib.load(filepath)
 
 def restore_file(restore_id, load_key='default'):
     if restore_id is not None:
-        load_data = get_load_data(restore_id)
+        load_file = Config.get_load_filename(restore_id=restore_id)
+        filepath = file_to_path(load_file)
+        load_data = joblib.load(filepath)
 
         Config.set_load_data(load_data, load_key=load_key)
 
@@ -36,13 +29,14 @@ def restore_file(restore_id, load_key='default'):
     from coinrun.coinrunenv import init_args_and_threads
     init_args_and_threads(4)
 
-def setup_and_load_with_args(args):
-    Config.parse_all_args(args)
+def setup_and_load(cmd_line_args=None, **kwargs):
+    """
+    Initialize the global config using command line options, defaulting to the values in `config.py`.
 
-    load_for_setup_if_necessary()
-
-def setup_and_load(**kwargs):
-    args = Config.initialize_args(**kwargs)
+    `cmd_line_args`: manually specify the command line arguments to use instead of those from `sys.argv`
+    `**kwargs`: override the defaults from `config.py` with these values
+    """
+    args = Config.initialize_args(cmd_line_args=cmd_line_args, **kwargs)
 
     load_for_setup_if_necessary()
 

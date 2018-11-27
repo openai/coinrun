@@ -3,8 +3,6 @@ from mpi4py import MPI
 from coinrun.config import Config
 import numpy as np
 
-from baselines.common.tf_util import launch_tensorboard_in_background
-
 TB_DIR = '/tmp/tensorflow'
 
 def clean_tb_dir():

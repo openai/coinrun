@@ -1,19 +1,15 @@
-import gym
+"""
+Load an agent trained with train_agent.py and 
+"""
+
 import time
-import joblib
+
 import tensorflow as tf
-
-import time
-
 import numpy as np
-
 from coinrun import setup_utils
 import coinrun.main_utils as utils
 from coinrun.config import Config
 from coinrun import policies, wrappers
-
-import cv2
-cv2.ocl.setUseOpenCL(False)
 
 mpi_print = utils.mpi_print
 
@@ -47,8 +43,7 @@ def enjoy_env_sess(sess):
     agent = create_act_model(sess, env, nenvs)
 
     sess.run(tf.global_variables_initializer())
-    utils.load_params_for_scope(sess, 'model')
-    
+    assert utils.load_params_for_scope(sess, 'model'), 'failed to load saved params'
 
     obs = env.reset()
     t_step = 0
@@ -63,8 +58,6 @@ def enjoy_env_sess(sess):
             env.render()
 
     maybe_render()
-
-    embs = []
 
     scores = np.array([0] * nenvs)
     score_counts = np.array([0] * nenvs)
@@ -134,11 +127,9 @@ def enjoy_env_sess(sess):
     return result
 
 def main():
-    utils.setup_mpi_gpus()
     setup_utils.setup_and_load()
-
     with tf.Session() as sess:
-        result = enjoy_env_sess(sess)
+        enjoy_env_sess(sess)
 
 if __name__ == '__main__':
     main()

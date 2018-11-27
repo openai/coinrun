@@ -1,4 +1,7 @@
-import os
+"""
+This is a copy of PPO from openai/baselines (https://github.com/openai/baselines/blob/52255beda5f5c8760b0ae1f676aa656bb1a61f80/baselines/ppo2/ppo2.py) with some minor changes.
+"""
+
 import time
 import joblib
 import numpy as np
@@ -120,8 +123,6 @@ class Model(object):
             with tf.control_dependencies(norm_update_ops):
                 _train = trainer.apply_gradients(grads_and_var)
 
-        num_rews = 1
-
         def train(lr, cliprange, v_scale, obs, returns, masks, actions, values, neglogpacs, states=None):
             advs = returns - values
             advs = advs[:,0]
@@ -172,7 +173,6 @@ class Model(object):
             initialize()
 
 class Runner(AbstractEnvRunner):
-
     def __init__(self, *, env, model, nsteps, gamma, lam):
         super().__init__(env=env, model=model, nsteps=nsteps)
         self.lam = lam
@@ -213,7 +213,6 @@ class Runner(AbstractEnvRunner):
         mb_advs = np.zeros_like(mb_rewards)
         lastgaelam = 0
 
-        v_scale = 1.0
         r_scale = 1.0
         
         for t in reversed(range(self.nsteps)):
@@ -230,13 +229,20 @@ class Runner(AbstractEnvRunner):
 
         return (*map(sf01, (mb_obs, mb_returns, mb_dones, mb_actions, mb_values, mb_neglogpacs)),
             mb_states, epinfos, r_scale)
-# obs, returns, masks, actions, values, neglogpacs, states = runner.run()
+
 def sf01(arr):
     """
     swap and then flatten axes 0 and 1
     """
     s = arr.shape
     return arr.swapaxes(0, 1).reshape(s[0] * s[1], *s[2:])
+
+
+def constfn(val):
+    def f(_):
+        return val
+    return f
+
 
 def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
             vf_coef=0.5,  max_grad_norm=0.5, gamma=0.99, lam=0.95,
@@ -291,8 +297,6 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
     checkpoints = [32, 64]
     saved_key_checkpoints = [False] * len(checkpoints)
 
-    is_tester = Config.is_test_rank()
-
     if Config.SYNC_FROM_ROOT and rank != 0:
         can_save = False
 
@@ -308,7 +312,7 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
         lrnow = lr(frac)
         cliprangenow = cliprange(frac)
 
-        mpi_print('running...')
+        mpi_print('collecting rollouts...')
         run_tstart = time.time()
 
         obs, returns, masks, actions, values, neglogpacs, states, epinfos, v_scale = runner.run()
@@ -317,9 +321,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
         run_elapsed = time.time() - run_tstart
         run_t_total += run_elapsed
-        mpi_print('done.')
+        mpi_print('rollouts complete')
 
         mblossvals = []
+
+        mpi_print('updating parameters...')
         train_tstart = time.time()
 
         if states is None: # nonrecurrent version
@@ -349,13 +355,11 @@ def learn(*, policy, env, nsteps, total_timesteps, ent_coef, lr,
 
         train_elapsed = time.time() - train_tstart
         train_t_total += train_elapsed
+        print('update complete')
 
         lossvals = np.mean(mblossvals, axis=0)
         tnow = time.time()
         fps = int(mpi_nbatch / (tnow - tstart))
-
-        max_ep_rew = 0
-        num_rews = 1
 
         if update % log_interval == 0 or update == 1:
             step = update*mpi_nbatch

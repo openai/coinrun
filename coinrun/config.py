@@ -1,11 +1,17 @@
 from mpi4py import MPI
-import numpy as np
 import argparse
-import platform
+import os
 
 class ConfigSingle(object):
+    """
+    A global config object that can be initialized from command line arguments or
+    keyword arguments.
+    """
     def __init__(self):
-        self.WORKDIR = '/root/data/saved_models/'
+        self.WORKDIR = './saved_models/'
+        if not os.path.exists(self.WORKDIR):
+            os.makedirs(self.WORKDIR, exist_ok=True)
+
         self.LOG_ALL_MPI = True
         self.SYNC_FROM_ROOT = True
 
@@ -82,8 +88,6 @@ class ConfigSingle(object):
     def is_test_rank(self):
         if self.TEST:
             rank = MPI.COMM_WORLD.Get_rank()
-            size = MPI.COMM_WORLD.Get_size()
-
             return rank % 2 == 1
 
         return False
@@ -109,9 +113,14 @@ class ConfigSingle(object):
     def parse_all_args(self, args):
         for ak in self.array_keys:
             self.args_dict[ak[0]] = ak[1]
-            
-        args_dict = vars(args)
-        self.parse_args_dict(args_dict)
+        
+        if isinstance(args, dict):
+            update_dict = args
+        elif isinstance(args, argparse.Namespace):
+            update_dict = vars(args)
+        else:
+            raise Exception('unrecognized type for args')
+        self.parse_args_dict(update_dict)
 
     def parse_args_dict(self, update_dict):
         self.args_dict.update(update_dict)
@@ -148,7 +157,6 @@ class ConfigSingle(object):
         if restore_id is None:
             return None
         
-        comm = MPI.COMM_WORLD
         filename = Config.get_save_file_for_rank(0, self.process_field(restore_id), base_name=base_name)
 
         return filename
@@ -187,7 +195,7 @@ class ConfigSingle(object):
 
         return _args_dict
         
-    def initialize_args(self, **kwargs):
+    def initialize_args(self, cmd_line_args=None, **kwargs):
         default_args = {}
 
         for tk in self.type_keys:
@@ -208,7 +216,7 @@ class ConfigSingle(object):
             bk_kwargs = {bk[1]: default_args[bk[1]]}
             parser.set_defaults(**bk_kwargs)
 
-        args = parser.parse_args()
+        args = parser.parse_args(args=cmd_line_args)
 
         self.parse_all_args(args)
 

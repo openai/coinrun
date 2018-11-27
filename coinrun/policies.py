@@ -1,18 +1,17 @@
 import numpy as np
 import tensorflow as tf
-from baselines.a2c.utils import conv, fc, conv_to_fc, batch_to_seq, seq_to_batch, lstm, lnlstm, ortho_init
+from baselines.a2c.utils import conv, fc, conv_to_fc, batch_to_seq, seq_to_batch, lstm
 from baselines.common.distributions import make_pdtype
 from baselines.common.input import observation_input
 
 from coinrun.config import Config
 
 def impala_cnn(images):
+    """
+    Model used in the paper https://arxiv.org/abs/1802.01561
+    """
     depths = Config.LAYER_DEPTHS
     norm_mode = Config.NORM_MODE
-
-    nin = images.get_shape()[0]
-
-    layer_num = [0]
 
     def conv_layer(out, depth):
         out = tf.layers.conv2d(out, depth, 3, padding='same')
@@ -53,14 +52,14 @@ def impala_cnn(images):
 
 def nature_cnn(unscaled_images, **conv_kwargs):
     """
-    CNN from Nature paper.
+    Model used in the paper https://www.nature.com/articles/nature14236
     """
 
     def activ(curr):
         return tf.nn.relu(curr)
 
 
-    h = activ(conv(scaled_images, 'c1', nf=32, rf=8, stride=4, init_scale=np.sqrt(2),
+    h = activ(conv(unscaled_images, 'c1', nf=32, rf=8, stride=4, init_scale=np.sqrt(2),
                    **conv_kwargs))
     h2 = activ(conv(h, 'c2', nf=64, rf=4, stride=2, init_scale=np.sqrt(2), **conv_kwargs))
     h3 = activ(conv(h2, 'c3', nf=64, rf=3, stride=1, init_scale=np.sqrt(2), **conv_kwargs))

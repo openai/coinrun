@@ -1,3 +1,12 @@
+/*
+Source code for the CoinRun environment.
+
+This is built as a shared library and loaded into python with ctypes.
+It exposes a C interface similar to that of a VecEnv.
+
+Also includes a mode that creates a window you can interact with using the keyboard.
+*/
+
 #include <QtCore/QMutexLocker>
 #include <QtCore/QWaitCondition>
 #include <QtWidgets/QApplication>
@@ -71,11 +80,6 @@ const float MONSTER_MIXRATE = 0.1;
 
 const int RES_W = 64;
 const int RES_H = 64;
-
-extern "C" int get_NUM_ACTIONS()  { return NUM_ACTIONS; }
-extern "C" int get_RES_W()  { return RES_W; }
-extern "C" int get_RES_H()  { return RES_H; }
-extern "C" int get_VIDEORES()  { return VIDEORES; }
 
 const int MAX_COINRUN_DIFFICULTY = 3;
 const int MAX_MAZE_DIFFICULTY = 4;
@@ -990,8 +994,6 @@ void images_load()
       "kenney/Backgrounds/colored_desert.png",
       "kenney/Backgrounds/colored_grass.png",
       "kenney/Backgrounds/colored_land.png",
-      //"kenney/Backgrounds/colored_shroom.png",                      -- brown indistinguishable from crates and player (brown player)
-      //"backgrounds/game-backgrounds/Tidal-Tally_2048x1536px_2.png", -- bright yellow like coin
       "backgrounds/game-backgrounds/seabed.png",
       "backgrounds/game-backgrounds/G049_OT000_002A__background.png",
       "backgrounds/game-backgrounds/Background.png",
@@ -1019,7 +1021,6 @@ void images_load()
       "backgrounds/background-2/airadventurelevel2.png",
       "backgrounds/background-2/airadventurelevel3.png",
       "backgrounds/background-2/airadventurelevel4.png",
-      //"backgrounds/bevouliin-free-mountain-game-background/background.png",   -- ping as player
       0};
   for (const char **theme=bgthemes; *theme; ++theme) {
     QString path = QString::fromUtf8(*theme);
@@ -1803,6 +1804,11 @@ static std::vector<std::shared_ptr<QThread>> all_threads;
 // ------ C Interface ---------
 
 extern "C" {
+int get_NUM_ACTIONS()  { return NUM_ACTIONS; }
+int get_RES_W()  { return RES_W; }
+int get_RES_H()  { return RES_H; }
+int get_VIDEORES()  { return VIDEORES; }
+
 void initialize_args(int *int_args) {
   USE_HIGH_DIF = int_args[0] == 1;
   LEVEL_SEED_START = int_args[1];
@@ -1860,9 +1866,9 @@ int vec_create(int game_type, int nenvs, int lump_n, bool want_hires, float defa
         (monitor_csv_policy == 2))
     {
       vstate->states[n]->agent.monitor_csv_open(n + lump_n * nenvs);
-      if (want_hires)
-        vstate->states[n]->agent.render_hires_buf = new uint8_t[VIDEORES*VIDEORES*4];
     }
+    if (want_hires)
+        vstate->states[n]->agent.render_hires_buf = new uint8_t[VIDEORES*VIDEORES*4];
   }
   vstate->nenvs = nenvs;
   int h;
