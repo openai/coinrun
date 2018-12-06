@@ -2,9 +2,9 @@
 
 # Quantifying Generalization in Reinforcement Learning
 
-#### [[Blog Post]](https://blog.openai.com/?????) [[Paper]](https://arxiv.org/abs/???????)
+#### [[Blog Post]](https://blog.openai.com/quantifying-generalization-in-reinforcement-learning/) [[Paper]](https://drive.google.com/file/d/1U1-uufB_ZzQ1HG67BhW9bB8mTJ6JtS19/view)
 
-This is code for the environments used in the paper [Quantifying Generalization in Reinforcement Learning](https://arxiv.org/abs/???????) along with an example training script.
+This is code for the environments used in the paper [Quantifying Generalization in Reinforcement Learning](https://drive.google.com/file/d/1U1-uufB_ZzQ1HG67BhW9bB8mTJ6JtS19/view) along with an example training script.
 
 Authors: Karl Cobbe, Oleg Klimov, Chris Hesse, Taehoon Kim, John Schulman
 
