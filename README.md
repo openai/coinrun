@@ -14,7 +14,7 @@ Authors: Karl Cobbe, Oleg Klimov, Chris Hesse, Taehoon Kim, John Schulman
 
 You should install the package in development mode so you can easily change the files.  You may also want to create a virtualenv before installing since it depends on a specific version of OpenAI baselines.
 
-This environment has been used on Mac OS X and Ubuntu 16.04 and Python 3.6.
+This environment has been used on Mac OS X and Ubuntu 16.04 with Python 3.6.
 
 ```
 # Linux
@@ -128,9 +128,11 @@ import numpy as np
 from coinrun import setup_utils, make
 
 setup_utils.setup_and_load(use_cmd_line_args=False)
-env = make('CoinRun-v0', num_envs=16)
+env = make('standard', num_envs=16)
 for _ in range(100):
     acts = np.array([env.action_space.sample() for _ in range(env.num_envs)])
     _obs, _rews, _dones, _infos = env.step(acts)
 env.close()
 ```
+
+See [LICENSES](LICENSES.md) for asset license information.
