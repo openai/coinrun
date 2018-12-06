@@ -106,7 +106,7 @@ python -m coinrun.train_agent --help
 Watch a trained agent play a level:
 
 ```
-python -m coinrun.enjoy --restore-id myrun --fullr
+python -m coinrun.enjoy --restore-id myrun --hres
 ```
 
 Train an agent to play RandomMazes:
