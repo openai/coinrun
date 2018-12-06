@@ -2,9 +2,9 @@
 
 # Quantifying Generalization in Reinforcement Learning
 
-#### [[Blog Post]](https://blog.openai.com/?????) [[Paper]](https://arxiv.org/abs/???????)
+#### [[Blog Post]](https://blog.openai.com/quantifying-generalization-in-reinforcement-learning/) [[Paper]](https://drive.google.com/file/d/1U1-uufB_ZzQ1HG67BhW9bB8mTJ6JtS19/view)
 
-This is code for the environments used in the paper [Quantifying Generalization in Reinforcement Learning](https://arxiv.org/abs/???????) along with an example training script.
+This is code for the environments used in the paper [Quantifying Generalization in Reinforcement Learning](https://drive.google.com/file/d/1U1-uufB_ZzQ1HG67BhW9bB8mTJ6JtS19/view) along with an example training script.
 
 Authors: Karl Cobbe, Oleg Klimov, Chris Hesse, Taehoon Kim, John Schulman
 
@@ -14,7 +14,7 @@ Authors: Karl Cobbe, Oleg Klimov, Chris Hesse, Taehoon Kim, John Schulman
 
 You should install the package in development mode so you can easily change the files.  You may also want to create a virtualenv before installing since it depends on a specific version of OpenAI baselines.
 
-This environment has been used on Mac OS X and Ubuntu 16.04 and Python 3.6.
+This environment has been used on Mac OS X and Ubuntu 16.04 with Python 3.6.
 
 ```
 # Linux
@@ -128,9 +128,11 @@ import numpy as np
 from coinrun import setup_utils, make
 
 setup_utils.setup_and_load(use_cmd_line_args=False)
-env = make('CoinRun-v0', num_envs=16)
+env = make('standard', num_envs=16)
 for _ in range(100):
     acts = np.array([env.action_space.sample() for _ in range(env.num_envs)])
     _obs, _rews, _dones, _infos = env.step(acts)
 env.close()
 ```
+
+See [LICENSES](LICENSES.md) for asset license information.
