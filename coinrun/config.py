@@ -27,7 +27,7 @@ class ConfigSingle(object):
         type_keys.append(('resid', 'restore_id', str, None))
 
         # The game to be played.
-        # One of {'standard', 'platform', 'maze'}
+        # One of {'standard', 'platform', 'maze'} (for CoinRun, CoinRun-Platforms, Random-Mazes)
         type_keys.append(('gamet', 'game_type', str, 'standard', True)) 
 
         # The convolutional architecture to use
@@ -60,10 +60,12 @@ class ConfigSingle(object):
         type_keys.append(('gamma', 'gamma', float, 0.999))
 
         # Should the agent's velocity be painted in the upper left corner of observations.
-        # PAINT_VEL_INFO = -1 uses smart defaulting -- will default to True iff the selected architecture is not recurrent.
+        # 1/0 means True/False
+        # PAINT_VEL_INFO = -1 uses smart defaulting -- will default to 1 if GAME_TYPE is 'standard' (CoinRun), 0 otherwise
         type_keys.append(('pvi', 'paint_vel_info', int, -1, True))
 
         # Should batch normalization be used after each convolutional layer
+        # 1/0 means True/False
         # This code only supports training-mode batch normalization (normalizing with statistics of the current batch).
         # In practice, we found this is nearly as effective as tracking the moving average of the statistics.
         # NOTE: Only applies to IMPALA and IMPALA-Large architectures
@@ -74,6 +76,7 @@ class ConfigSingle(object):
         type_keys.append(('dropout', 'dropout', float, 0.0, True))
 
         # Should data augmentation be used
+        # 1/0 means True/False
         type_keys.append(('uda', 'use_data_augmentation', int, 0))
 
         # The l2 penalty to use during training
@@ -87,6 +90,7 @@ class ConfigSingle(object):
         type_keys.append(('fs', 'frame_stack', int, 1, True))
 
         # Should observations be transformed to grayscale
+        # 1/0 means True/False
         type_keys.append(('ubw', 'use_black_white', int, 0, True))
 
         # Overwrite the latest save file after this many updates
