@@ -20,7 +20,7 @@ This environment has been used on Mac OS X and Ubuntu 16.04 with Python 3.6.
 # Linux
 apt-get install qtbase5-dev mpich
 # Mac
-brew install qt open-mpi
+brew install qt open-mpi pkg-config
 
 git clone https://github.com/openai/coinrun.git
 cd coinrun
