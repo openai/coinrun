@@ -18,7 +18,7 @@ This environment has been used on Mac OS X and Ubuntu 16.04 with Python 3.6.
 
 ```
 # Linux
-apt-get install qtbase5-dev mpich
+apt-get install mpich build-essential qt5-default pkg-config
 # Mac
 brew install qt open-mpi pkg-config
 
