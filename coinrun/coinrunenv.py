@@ -11,6 +11,7 @@ import sys
 from ctypes import c_int, c_char_p, c_float, c_bool
 
 import gym
+import gym.spaces
 import numpy as np
 import numpy.ctypeslib as npct
 from baselines.common.vec_env import VecEnv
@@ -208,7 +209,7 @@ class CoinRunVecEnv(VecEnv):
 
         if Config.USE_BLACK_WHITE:
             obs_frames = np.mean(obs_frames, axis=-1).astype(np.uint8)[...,None]
-        
+
         return obs_frames, self.buf_rew, self.buf_done, self.dummy_info
 
 def make(env_id, num_envs, **kwargs):
