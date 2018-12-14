@@ -126,6 +126,7 @@ Example random agent script:
 ```
 import numpy as np
 from coinrun import setup_utils, make
+import gym.spaces
 
 setup_utils.setup_and_load(use_cmd_line_args=False)
 env = make('standard', num_envs=16)
