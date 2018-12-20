@@ -99,7 +99,7 @@ def choose_cnn(images):
     elif arch == 'impala':
         out, dropout_assign_ops = impala_cnn(scaled_images)
     elif arch == 'impalalarge':
-        out = impala_cnn(scaled_images, depth=[32, 64, 64, 64, 64])
+        out, dropout_assign_ops = impala_cnn(scaled_images, depths=[32, 64, 64, 64, 64])
     else:
         assert(False)
 
