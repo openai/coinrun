@@ -603,15 +603,15 @@ public:
       rec_stack.pop_back();
       int x = r.x;
       int y = r.y;
-      bool good_place = true;
-      good_place &= maze->get_elem(x-1, y) == SPACE;
-      good_place &= maze->get_elem(x, y) == SPACE;
-      good_place &= maze->get_elem(x+1, y) == SPACE;
-      good_place &= maze->get_elem(x, (y+1)) == SPACE;
-      good_place &= is_wall(maze->get_elem(x-1, y-1), true);
-      good_place &= is_wall(maze->get_elem(x, y-1), true);
-      good_place &= is_wall(maze->get_elem(x+1, y-1), true);
-      good_place &= r.y > 2;
+      bool good_place =
+        maze->get_elem(x, y) == SPACE &&
+        r.y > 2 &&
+        maze->get_elem(x-1, y) == SPACE &&
+        maze->get_elem(x+1, y) == SPACE &&
+        maze->get_elem(x, (y+1)) == SPACE &&
+        is_wall(maze->get_elem(x-1, y-1), true) &&
+        is_wall(maze->get_elem(x, y-1), true) &&
+        is_wall(maze->get_elem(x+1, y-1), true);
       if (good_place) {
         maze->set_elem(x, y, '1');
         coins += 1;
