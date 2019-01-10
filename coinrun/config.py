@@ -99,8 +99,6 @@ class ConfigSingle(object):
         # The number of evaluation environments to use
         type_keys.append(('num-eval', 'num_eval', int, 20, True))
 
-        type_keys.append(('nt', 'num_trials', int, 1, True))
-
         # The number of episodes to evaluate with each evaluation environment
         type_keys.append(('rep', 'rep', int, 1))
 
@@ -119,6 +117,9 @@ class ConfigSingle(object):
 
         # Use high resolution images for rendering
         bool_keys.append(('hres', 'is_high_res'))
+
+        type_keys.append(('nt', 'num_trials', int, 1, True))
+        type_keys.append(('rhp', 'use_random_hps', int, 0, True))
 
         self.RES_KEYS = []
 

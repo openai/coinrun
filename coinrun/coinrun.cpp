@@ -84,6 +84,7 @@ const int MAX_COINRUN_DIFFICULTY = 3;
 const int MAX_MAZE_DIFFICULTY = 4;
 
 int NUM_TRIALS = 1;
+bool USE_RANDOM_HPS = false;
 
 bool USE_LEVEL_SET = false;
 int NUM_LEVELS = 0;
@@ -298,19 +299,30 @@ public:
       );
   }
 
-  void init_physics() {
+  void init_physics(RandGen *rand_gen) {
     if (game_type == CoinRunMaze_v0) {
       default_zoom = 7.5;
     } else {
       default_zoom = 5.0;
     }
       
-    gravity = .2;
-    air_control = .15;
-    
-    max_jump = 1.5;
-    max_speed = .5;
-    mix_rate = .2;
+    if (USE_RANDOM_HPS) {
+      default_zoom = rand_gen->rand01() * 2 + 3;
+        
+      gravity = rand_gen->rand01() * .25 + .15;
+      air_control = rand_gen->rand01() * .2 + .05;
+      
+      max_jump = rand_gen->rand01() + 1;
+      max_speed = rand_gen->rand01() * .5 + .25;
+      mix_rate = rand_gen->rand01() * .15 + .15;
+    } else {
+      gravity = .2;
+      air_control = .15;
+      
+      max_jump = 1.5;
+      max_speed = .5;
+      mix_rate = .2;
+    }
 
     max_dy = max_jump * max_jump / (2*gravity);
     max_dx = max_speed * 2 * max_jump / gravity;
@@ -465,7 +477,7 @@ public:
       maze->fill_elem(0, maze->h - 1, maze->w, 1, WALL_MIDDLE);
     }
 
-    maze->init_physics();
+    maze->init_physics(&rand_gen);
   }
 
   int randn(int n) {
@@ -1846,6 +1858,7 @@ void initialize_args(int *int_args) {
   int rand_seed = int_args[6];
 
   NUM_TRIALS = int_args[7];
+  USE_RANDOM_HPS = int_args[8] == 1;
 
   if (NUM_LEVELS > 0 && (training_sets_seed != -1)) {
     global_rand_gen.seed(training_sets_seed);
