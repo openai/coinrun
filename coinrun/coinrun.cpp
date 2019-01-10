@@ -83,6 +83,8 @@ const int RES_H = 64;
 const int MAX_COINRUN_DIFFICULTY = 3;
 const int MAX_MAZE_DIFFICULTY = 4;
 
+int NUM_TRIALS = 1;
+
 bool USE_LEVEL_SET = false;
 int NUM_LEVELS = 0;
 int *LEVEL_SEEDS;
@@ -1429,6 +1431,10 @@ struct State {
   State(const std::shared_ptr<VectorOfStates>& belongs_to):
     belongs_to(belongs_to)  { }
 
+  int game_type;
+  int trials_remaining;
+  int current_level_seed;
+
   QMutex state_mutex;
    std::weak_ptr<VectorOfStates> belongs_to;
    int time;
@@ -1437,59 +1443,85 @@ struct State {
   QMutex step_mutex;
    bool step_in_progress = false;
    bool agent_ready = false;
+
+   void step() {
+    time += 1;
+
+    for (const std::shared_ptr<Monster>& m: maze->monsters) {
+      m->step(maze);
+      Agent& a = agent;
+      if (fabs(m->x - a.x) + fabs(m->y - a.y) < 1.0)
+        maze->is_terminated = true;  // no effect on agent score
+    }
+
+    if (maze->is_terminated && trials_remaining > 0) {
+      maze->is_terminated = false;
+
+      level_reset();
+    }
+  }
+
+  void level_reset() {
+    RandomMazeGenerator maze_gen;
+    maze_gen.rand_gen.seed(current_level_seed);
+
+    trials_remaining -= 1;
+
+    int w = 64;
+    int h = 64;
+    maze.reset(new Maze(w, h, game_type));
+    maze_gen.maze = maze;
+
+    maze_gen.initial_floor_and_walls(game_type);
+
+    if (game_type==CoinRunPlatforms_v0) {
+      maze_gen.generate_coins_on_platforms();
+    } else if (game_type == CoinRunToTheRight_v0) {
+      maze_gen.generate_coin_to_the_right(game_type);
+    } else if (game_type == CoinRunMaze_v0) {
+      maze_gen.generate_coin_maze();
+    } else {
+      fprintf(stderr, "coinrun: unknown game type %i\n", game_type);
+      maze_gen.generate_test_level();
+    }
+
+    float zoom = maze->default_zoom;
+    agent.maze = maze;
+    agent.zoom = zoom;
+    agent.target_zoom = zoom;
+
+    agent.theme_n = maze_gen.randn(player_themesl.size());
+    ground_n = maze_gen.randn(ground_themes.size());
+    bg_n = maze_gen.randn(bg_images.size());
+
+    agent.reset(0);
+
+    maze->is_terminated = false;
+    time = 0;
+  }
+
+  void state_reset(int _game_type)
+  {
+    assert(player_themesl.size() > 0 && "Please call init(threads) first");
+
+    int level_seed = 0;
+    game_type = _game_type;
+
+    if (USE_LEVEL_SET) {
+      int level_index = global_rand_gen.randint(0, NUM_LEVELS);
+      level_seed = LEVEL_SEEDS[level_index];
+    } else if (NUM_LEVELS > 0) {
+      level_seed = global_rand_gen.randint(0, NUM_LEVELS);
+    } else {
+      level_seed = global_rand_gen.randint();
+    }
+
+    current_level_seed = level_seed;
+    trials_remaining = NUM_TRIALS;
+
+    level_reset();
+  }
 };
-
-void state_reset(const std::shared_ptr<State>& state, int game_type)
-{
-  assert(player_themesl.size() > 0 && "Please call init(threads) first");
-
-  int level_seed = 0;
-
-  if (USE_LEVEL_SET) {
-    int level_index = global_rand_gen.randint(0, NUM_LEVELS);
-    level_seed = LEVEL_SEEDS[level_index];
-  } else if (NUM_LEVELS > 0) {
-    level_seed = global_rand_gen.randint(0, NUM_LEVELS);
-  } else {
-    level_seed = global_rand_gen.randint();
-  }
-
-  RandomMazeGenerator maze_gen;
-  maze_gen.rand_gen.seed(level_seed);
-
-  int w = 64;
-  int h = 64;
-  state->maze.reset(new Maze(w, h, game_type));
-  maze_gen.maze = state->maze;
-
-  maze_gen.initial_floor_and_walls(game_type);
-
-  if (game_type==CoinRunPlatforms_v0) {
-    maze_gen.generate_coins_on_platforms();
-  } else if (game_type == CoinRunToTheRight_v0) {
-    maze_gen.generate_coin_to_the_right(game_type);
-  } else if (game_type == CoinRunMaze_v0) {
-    maze_gen.generate_coin_maze();
-  } else {
-    fprintf(stderr, "coinrun: unknown game type %i\n", game_type);
-    maze_gen.generate_test_level();
-  }
-
-  Agent &agent = state->agent;
-  float zoom = state->maze->default_zoom;
-  agent.maze = state->maze;
-  agent.zoom = zoom;
-  agent.target_zoom = zoom;
-
-  agent.theme_n = maze_gen.randn(player_themesl.size());
-  state->ground_n = maze_gen.randn(ground_themes.size());
-  state->bg_n = maze_gen.randn(bg_images.size());
-
-  agent.reset(0);
-
-  state->maze->is_terminated = false;
-  state->time = 0;
-}
 
 // -- render --
 
@@ -1753,15 +1785,10 @@ void stepping_thread(int n)
       std::shared_ptr<VectorOfStates> belongs_to = todo_state->belongs_to.lock();
       if (!belongs_to)
         continue;
-      todo_state->time += 1;
-      bool game_over = todo_state->maze->is_terminated;
+      
+      todo_state->step();
 
-      for (const std::shared_ptr<Monster>& m: todo_state->maze->monsters) {
-        m->step(todo_state->maze);
-        Agent& a = todo_state->agent;
-        if (fabs(m->x - a.x) + fabs(m->y - a.y) < 1.0)
-          todo_state->maze->is_terminated = true;  // no effect on agent score
-      }
+      bool game_over = todo_state->maze->is_terminated;
 
       Agent& a = todo_state->agent;
       if (game_over)
@@ -1770,7 +1797,7 @@ void stepping_thread(int n)
       a.step(belongs_to->game_type);
 
       if (game_over) {
-        state_reset(todo_state, belongs_to->game_type);
+        todo_state->state_reset(belongs_to->game_type);
       }
 
       paint_render_buf(a.render_buf, RES_W, RES_H, todo_state, &a, false, false);
@@ -1817,6 +1844,8 @@ void initialize_args(int *int_args) {
 
   int training_sets_seed = int_args[5];
   int rand_seed = int_args[6];
+
+  NUM_TRIALS = int_args[7];
 
   if (NUM_LEVELS > 0 && (training_sets_seed != -1)) {
     global_rand_gen.seed(training_sets_seed);
@@ -1870,7 +1899,7 @@ int vec_create(int game_type, int nenvs, int lump_n, bool want_hires, float defa
   for (int n = 0; n < nenvs; n++) {
     vstate->states[n] = std::shared_ptr<State>(new State(vstate));
     vstate->states[n]->state_n = n;
-    state_reset(vstate->states[n], vstate->game_type);
+    vstate->states[n]->state_reset(vstate->game_type);
     vstate->states[n]->agent_ready = false;
     vstate->states[n]->agent.zoom = default_zoom;
     vstate->states[n]->agent.target_zoom = default_zoom;
