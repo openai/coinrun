@@ -129,8 +129,8 @@ class ConfigSingle(object):
         for bk in bool_keys:
             arg_keys.append(bk[1])
 
-            if (len(tk) > 2) and tk[2]:
-                self.RES_KEYS.append(tk[1])
+            if (len(bk) > 2) and bk[2]:
+                self.RES_KEYS.append(bk[1])
 
         self.arg_keys = arg_keys
         self.bool_keys = bool_keys
