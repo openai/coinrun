@@ -24,7 +24,7 @@ brew install qt open-mpi pkg-config
 
 git clone https://github.com/openai/coinrun.git
 cd coinrun
-pip install tensorflow  # or tensorflow-gpu
+pip install tensorflow==1.12.0  # or tensorflow-gpu
 pip install -r requirements.txt
 pip install -e .
 ```
