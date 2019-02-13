@@ -127,11 +127,17 @@ There's an example random agent script in [`coinrun/random_agent.py`](coinrun/ra
 python -m coinrun.random_agent
 ```
 
+## Docker
+
 There's also a `Dockerfile` to create a CoinRun docker image:
 
 ```
 docker build --tag coinrun .
 docker run --rm coinrun python -um coinrun.random_agent
 ```
+
+## Colab
+
+There's also a [Colab notebook](https://colab.research.google.com/drive/1e2Eyl8HANzcqPheVBMbdwi3wqDv41kZt) showing how to setup CoinRun.
 
 See [LICENSES](LICENSES.md) for asset license information.
