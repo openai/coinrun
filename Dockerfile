@@ -4,6 +4,5 @@ RUN apt-get install --yes mpich build-essential qt5-default pkg-config
 ADD . coinrun
 RUN pip install -r coinrun/requirements.txt
 RUN pip install -e coinrun
-
-ENTRYPOINT []
-CMD ["python", "-um", "coinrun.random_agent"]
+# this has the side-effect of building the coinrun env
+RUN python -c 'import coinrun'

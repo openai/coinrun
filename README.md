@@ -131,7 +131,7 @@ There's also a `Dockerfile` to create a CoinRun docker image:
 
 ```
 docker build --tag coinrun .
-docker run --rm coinrun
+docker run --rm coinrun python -um coinrun.random_agent
 ```
 
 See [LICENSES](LICENSES.md) for asset license information.
