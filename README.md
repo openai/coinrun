@@ -47,7 +47,7 @@ Train an agent using PPO:
 python -m coinrun.train_agent --run-id myrun --save-interval 1
 ```
 
-After each parameter update, this will save a copy of the agent to `./saved_models/`. Results are logged to /tmp/tensorflow by default.
+After each parameter update, this will save a copy of the agent to `./saved_models/`. Results are logged to `/tmp/tensorflow` by default.
 
 Run parallel training using MPI:
 
@@ -85,13 +85,13 @@ Evaluate an agent's final training performance across N parallel environments. E
 python -m coinrun.enjoy --train-eval --restore-id myrun -num-eval N -rep K
 ```
 
-Evaluate an agent's final test performance on PxNxK distinct levels. All evaluation levels are uniformly sampled from the set of all high difficulty levels. Although we don't explictly enforce that the test set avoid training levels, the probability of collisions is negligible.
+Evaluate an agent's final test performance on PxNxK distinct levels. All evaluation levels are uniformly sampled from the set of all high difficulty levels. Although we don't explicitly enforce that the test set avoid training levels, the probability of collisions is negligible.
 
 ```
 mpiexec -np P python -m coinrun.enjoy --test-eval --restore-id myrun -num-eval N -rep K
 ```
 
-Run simulateous training and testing using MPI. Half the workers will train and half will test.
+Run simultaneous training and testing using MPI. Half the workers will train and half will test.
 
 ```
 mpiexec -np 8 python -m coinrun.train_agent --run-id myrun --test
