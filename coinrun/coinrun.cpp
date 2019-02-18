@@ -1966,7 +1966,7 @@ void vec_wait(
   }
 }
 
-void shutdown()
+void coinrun_shutdown()
 {
   shutdown_flag = true;
   while (!all_threads.empty()) {
@@ -2228,7 +2228,7 @@ extern "C" void test_main_loop()
   delete app;
 
   vec_close(handle);
-  shutdown();
+  coinrun_shutdown();
 }
 
 #include ".generated/coinrun.moc"

@@ -123,7 +123,7 @@ def shutdown():
     global already_inited
     if not already_inited:
         return
-    lib.shutdown()
+    lib.coinrun_shutdown()
 
 class CoinRunVecEnv(VecEnv):
     """
