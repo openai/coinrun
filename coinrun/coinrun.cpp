@@ -70,6 +70,8 @@ const char FLYING_MONSTER = 'F';
 const char WALKING_MONSTER = 'M';
 const char SAW_MONSTER = 'G';
 
+const bool FIX_ASSETS = true;
+
 const int DOWNSAMPLE = 16;
 const float MAXSPEED = 0.5;
 const float LADDER_MIXRATE = 0.4;
@@ -660,7 +662,14 @@ public:
             type_theme_idxs = &ground_theme_idxs;
           }
 
-          int chosen_idx = randn(type_theme_idxs->size());
+          int chosen_idx;
+
+          if (FIX_ASSETS) {
+            chosen_idx = 0;
+          } else {
+            chosen_idx = randn(type_theme_idxs->size());
+          }
+
           m->theme_n = (*type_theme_idxs)[chosen_idx];
 
           c = SPACE;
@@ -1481,9 +1490,15 @@ void state_reset(const std::shared_ptr<State>& state, int game_type)
   agent.zoom = zoom;
   agent.target_zoom = zoom;
 
-  agent.theme_n = maze_gen.randn(player_themesl.size());
-  state->ground_n = maze_gen.randn(ground_themes.size());
-  state->bg_n = maze_gen.randn(bg_images.size());
+  if (FIX_ASSETS) {
+    agent.theme_n = 0;
+    state->ground_n = 0;
+    state->bg_n = 0;
+  } else {
+    agent.theme_n = maze_gen.randn(player_themesl.size());
+    state->ground_n = maze_gen.randn(ground_themes.size());
+    state->bg_n = maze_gen.randn(bg_images.size());
+  }
 
   agent.reset(0);
 
