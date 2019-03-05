@@ -140,4 +140,4 @@ docker run --rm coinrun python -um coinrun.random_agent
 
 There's also a [Colab notebook](https://colab.research.google.com/drive/1e2Eyl8HANzcqPheVBMbdwi3wqDv41kZt) showing how to setup CoinRun.
 
-See [LICENSES](LICENSES.md) for asset license information.
+See [LICENSES](ASSET_LICENSES.md) for asset license information.
