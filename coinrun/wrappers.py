@@ -77,7 +77,7 @@ class EpisodeRewardWrapper(gym.Wrapper):
                         is_game_over = infos[i]['ale.lives'] == 0
 
                         if is_game_over:
-                            game_over_rew = self.long_aux_rewards[i,0]
+                            game_over_rew = self.long_aux_rewards[i,0] if use_aux else 0
                             self.long_aux_rewards[i,:] = 0
 
                         aux_dict['game_over_rew'] = game_over_rew
