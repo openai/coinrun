@@ -1156,7 +1156,7 @@ struct Agent {
 
   ~Agent() {
     if (render_hires_buf) {
-      delete render_hires_buf;
+      delete[] render_hires_buf;
       render_hires_buf = 0;
     }
     if (monitor_csv) {
