@@ -156,14 +156,11 @@ class Model(object):
         self.save = save
         self.load = load
 
+        initialize()
+
         if Config.SYNC_FROM_ROOT:
-            if MPI.COMM_WORLD.Get_rank() == 0:
-                initialize()
-            
             global_variables = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="")
             sync_from_root(sess, global_variables) #pylint: disable=E1101
-        else:
-            initialize()
 
 class Runner(AbstractEnvRunner):
     def __init__(self, *, env, model, nsteps, gamma, lam):
