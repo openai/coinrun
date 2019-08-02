@@ -1,5 +1,5 @@
 numpy~=1.15
-gym~=0.10
+gym==0.10.0
 pyglet~=1.3.2
 mpi4py~=3.0
 joblib~=0.12
