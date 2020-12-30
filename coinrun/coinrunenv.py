@@ -38,7 +38,7 @@ def build():
     if lrank == 0:
         dirname = os.path.dirname(__file__)
         if len(dirname):
-            make_cmd = "QT_SELECT=5 make -C %s" % dirname
+            make_cmd = "QT_SELECT=5 make -C \"%s\"" % dirname
         else:
             make_cmd = "QT_SELECT=5 make"
 
